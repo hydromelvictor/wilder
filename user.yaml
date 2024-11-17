@@ -1,0 +1,158 @@
+project:
+  name: Widen
+  entity:
+    Person:
+      username:
+        type: string
+        unique: true
+        length:
+          min: 4
+          max: infinity
+        required: true
+      email:
+        type: string
+        unique: true
+        format: <email>@<name>.<extension>
+      password:
+        type: string
+        required: true
+        length:
+          min: 6
+        format: 
+          CamelCaseWord: 
+            min: 2
+          Number: 
+            min: 2
+          ascii: 2
+      phone:
+        type: string
+        unique: true
+        required: true
+        framework: twilio
+      firstname:
+        type: string
+        length:
+          min: 4
+          max: infinity
+      middlename:
+        type: string
+        length:
+          min: 4
+          max: infinity
+      lastname:
+        type: string
+        length:
+          min: 4
+          max: infinity
+      birth:
+        type: date
+        format: JJ - MM - YYYY
+      sex:
+        type: string
+        choice:
+          - M
+          - F
+      country:
+        type: string
+      city:
+        type: string
+      street:
+        type: string
+      imgUrl:
+        type: string
+      bio:
+        description: biography
+        type: string
+      gps:
+        type: Gps
+      isAuthenticated:
+        description: pour manipuler le token
+        type: boolean
+        default: false
+      online:
+        type: boolean
+        default: false
+      status:
+        type: string
+        default: inactive
+        attributs:
+          - active
+          - inactive
+          - suspend
+          - delete
+      role:
+        type: Role
+      level:
+        type: Level
+      staff:
+        type: boolean
+        default: false
+      emergency:
+        type: [Person]
+      friends:
+        type: [Person]
+      followers:
+        type: [Person]
+      following:
+        type: [Person]
+      blocked:
+        type: [Person]
+  
+    Role:
+      name:
+        type: string
+        required: true
+        unique: true
+      auth:
+        type: Auth
+        required: true
+    
+    Gps:
+      author: Person
+      lng:
+        description: longitude
+        type: float
+      lat:
+        description: latitude
+        type: float
+
+    Auth:
+      description: authorisation de lecture/ouverture (r) - creation/modification (w) - suppression/lancement (x) sur les entités
+      access: rwx
+      organism: Organism
+    
+    Level:
+      description: grade
+      size:
+        type: number
+      perform:
+        type: Permission
+    
+    Permission:
+      description: sur les urls view (v) / read (r) - create (c) / update (u) - delete (d) / execute (x)
+      access: xvcrud
+      organism: Organism
+    
+    Organism:
+      description: pere de tout les models entité
+      createdAt:
+        type: date
+        default: now
+      updatedAt:
+        type: date
+        default: now
+      deleteAt:
+        type: date
+      suspendedAt:
+        type: date
+      onlinedAt:
+        type: date
+      inactivedAt:
+        type: date
+      performedAt:
+        type: date
+
+
+
+        
+

@@ -1,0 +1,577 @@
+openapi: 3.0.0
+info:
+  title: Wild API Documentation
+  version: 0.0.1
+  description: Wild est principalement une plateforme de mis en relation
+    prestataire - clients mettant en valeur les competences et/ou ressources personnellement disponible 
+    et presque de moindre interet personnel mais hautement valorisé par autrui.
+  contact:
+    name: Wild Team
+    email:
+      - staff@wild.com
+      - direction@wild.com
+      - carrers@wild.com
+      - signal@wild.com
+    url: https://wild.com
+
+servers:
+  - url: http://0.0.0.0:3000
+  - description: Development server
+
+paths:
+  /security/groups/:
+    post:
+      summary: Créer un nouveau group utilisateur
+      description: etre superuser et authentifié pour acceder a cette ressource
+      tags:
+        - Group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nom du group
+                  example: Controller
+                auths:
+                  type: array
+                  description: liste des authorizations du group sur les differentes entités
+                  items:
+                    type: object
+                    properties:
+                      access:
+                        type: string
+                        description: Type d'authorization sur une entité read(r) - write(w) - execute(x)
+                        example: rwx
+                      entity:
+                        type: string
+                        description: Nom de l'entité sur lequel est defini l'authorization
+                        example: User
+      responses:
+        '201':
+          description: Group crée avec success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: group created
+                  values:
+                    type: string
+                    example: 5f3b1b3b3b3b3b3b3b3b3b3b
+
+        '400':
+          description: Error dans les données de la request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: this group already exists !!!
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: error creating group
+                  error:
+                    type: string
+                    example: error message
+
+  /security/groups/{id}:
+    get:
+      summary: Lecture des groups
+      tags:
+        - Group
+      parameters:
+        - name: id
+          in: path
+          required: false
+          description: id du group
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b3b
+      responses:
+        '200':
+          description: Group trouvé
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object 
+                    properties:
+                      values:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                          name:
+                            type: string
+                            example: Controller
+                          auths:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                  example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                                access:
+                                  type: string
+                                  example: rwx
+                                entity:
+                                  type: string
+                                  example: User
+                                createdAt:
+                                  type: string
+                                  example: 2020-08-18T14:00:00.000Z
+                                updatedAt:
+                                  type: string
+                                  example: 2020-08-18T14:00:00.000Z
+                          createdAt:
+                            type: string
+                            example: 2020-08-18T14:00:00.000Z
+                          updatedAt:
+                            type: string
+                            example: 2020-08-18T14:00:00.000Z
+                      msg:
+                        type: string
+                        example: successfully
+
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                        name:
+                          type: string
+                          example: Controller
+                        auths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                                example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                              access:
+                                type: string
+                                example: rwx
+                              entity:
+                                type: string
+                                example: User
+                              createdAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                              updatedAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                        createdAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                        updatedAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+
+        '404':
+          description: Group non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: group not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: error finding group
+                  error:
+                    type: string
+                    example: error message
+
+    put:
+      summary: Mis a jour du group utilisateur
+      description: etre superuser et authentifié pour acceder a cette ressource
+      tags:
+        - Group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id du group
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b3b
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nom du group
+                  example: Controller
+                auths:
+                  type: array
+                  description: liste des authorizations du group sur les differentes entités
+                  items:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: id de l'authorization
+                        example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                      access:
+                        type: string
+                        description: Type d'authorization sur une entité read(r) - write(w) - execute(x)
+                        example: rwx
+      responses:
+        '200':
+          description: Group mis a jour avec success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: group updated successfully
+
+        '400':
+          description: Error dans les données de la request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: name and authorizations are required or invalid !!!
+
+        "404":
+          description: Group non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: group not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error updating group
+                  error:
+                    type: string
+                    example: error message
+
+    delete:
+      summary: Suppression des groups
+      tags:
+        - Group
+      parameters:
+        - name: id
+          in: path
+          required: false
+          description: id du group
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b3b
+      responses:
+        '204':
+          description: Group supprimé avec success
+
+        '404':
+          description: Group non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: group not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error deleting group
+                  error:
+                    type: string
+                    example: error message
+
+  /security/groups/find:
+    post:
+      summary: Recherche des groups
+      tags:
+        - Group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: rwx
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '200':
+          description: Groups trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  values:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: 5f3b1b3b3b3b3b3b3b3b3b3b
+                        name:
+                          type: string
+                          example: Controller
+                        auths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                                example: 5f3b1b3b3b3b3b3b3b3b3b
+                              access:
+                                type: string
+                                example: rwx
+                              entity:
+                                type: string
+                                example: User
+                              createdAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                              updatedAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                        createdAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                        updatedAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                  msg:
+                    type: string
+                    example: successfully
+
+        '404':
+          description: Groups non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: groups not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error finding groups
+                  error:
+                    type: string
+                    example: error message
+
+  /security/groups/delete:
+    post:
+      summary: Suppression des groups
+      tags:
+        - Group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: rwx
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '204':
+          description: Groups supprimé avec success
+
+        '404':
+          description: Groups non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: groups not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error deleting groups
+                  error:
+                    type: string
+                    example: error message
+
+  /security/groups/count:
+    post:
+      summary: Comptage des groups
+      tags:
+        - Group
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: rwx
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '200':
+          description: Groups trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  values:
+                    type: number
+                    example: 5
+                  msg:
+                    type: string
+                    example: count group
+
+        '404':
+          description: Groups non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: groups not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error counting groups
+                  error:
+                    type: string
+                    example: error message

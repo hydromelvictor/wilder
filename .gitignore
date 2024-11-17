@@ -1,0 +1,7 @@
+.env
+images/
+
+logs/
+node_modules/
+
+wild.drawio
