@@ -18,7 +18,7 @@ const EntitySchema = mongoose.Schema({
         type: Date
     },
     // derniere date d'action a haut risque (pour les admin)
-    perfomedAt: { 
+    criticalAt: { 
         type: Date
     },
 }, { timestamps: true });

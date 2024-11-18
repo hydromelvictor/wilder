@@ -18,14 +18,12 @@
 const Group = require('../../models/base/group')
 const Auth = require('../../models/base/auth')
 const logger = require('../../logger');
-
-function verifyAuth(auths) {
-    return auths.every(
-        (auth) =>
-            typeof auth.access === 'string' &&
-            typeof auth.entity === 'string'
-    );
-}
+const { 
+    verifyAuth, 
+    queryCheckAuth,
+    queryCheckCreatedAt,
+    queryCheckUpdateAuth
+} = require('../../utils/other');
 
 
 
@@ -33,8 +31,10 @@ function verifyAuth(auths) {
 exports.createGroup = (req, res, next) => {
     /**
      * name : String
-     * auths : Array<Object>
-     *      { access: 'rwx', entity: 'User'}
+     * auths : Array
+     *  items:
+     *      access
+     *      auths
      */
 
     const { name, auths } = req.body;
@@ -84,7 +84,7 @@ exports.createGroup = (req, res, next) => {
                             return res.status(500).json({
                                 msg: 'error creating group',
                                 error: err.message
-                             })
+                            })
                         });
                 })
                 .catch(err => {
@@ -109,7 +109,7 @@ exports.updateGroup = (req, res, next) => {
     /**
      * params: id
      * name : String
-     * auths : Array<Object>
+     * auths : Array
      *     { access: 'rwx', id: 'ObjectId'}
      */
     const { name, auths } = req.body;
@@ -134,6 +134,12 @@ exports.updateGroup = (req, res, next) => {
                 });
             }
 
+            // Vérification des authorizations
+            const error = queryCheckUpdateAuth(group, auths);
+            if (error) {
+                return res.status(400).json(error);
+            }
+
             // Préparation des opérations en bulk
             const bulkOps = auths.map((auth) => {
                 if (auth.id) {
@@ -150,7 +156,10 @@ exports.updateGroup = (req, res, next) => {
                     // Insertion des nouvelles autorisations
                     return {
                         insertOne: {
-                            document: auth,
+                            document: new Auth({
+                                access: auth.access,
+                                entity: auth.entity,
+                            }),
                         },
                     };
                 }
@@ -165,13 +174,14 @@ exports.updateGroup = (req, res, next) => {
                     });
                     
                     // Mise à jour du groupe
-                    Group.updateOne(
-                        { _id: group._id },
-                        {
-                            name: name,
-                            auths: updatedAuths,
-                        }
-                    )
+                    Group
+                        .updateOne(
+                            { _id: group._id },
+                            {
+                                name: name,
+                                auths: updatedAuths,
+                            }
+                        )
                         .then(() =>
                             res
                                 .status(200)
@@ -202,7 +212,7 @@ exports.updateGroup = (req, res, next) => {
         });
 };
 
-// lire un group par son id
+// lire
 exports.getGroup = (req, res, next) => {
     /**
      * params: id
@@ -214,7 +224,7 @@ exports.getGroup = (req, res, next) => {
         .then(groups => {
             if (!groups) {
                 return res.status(404).json({
-                    msg: 'failed',
+                    msg: 'not found group',
                 });
             }
             res.status(200).json({
@@ -231,7 +241,7 @@ exports.getGroup = (req, res, next) => {
         });
 }
 
-// supprimer un group
+// supprimer
 exports.deleteGroup = (req, res, next) => {
     /**
      * params: id
@@ -249,8 +259,8 @@ exports.deleteGroup = (req, res, next) => {
             // Supprimer les authorizations associées
             const deletedAuths = Array.isArray(groups) ? groups.flatMap(
                 group => group.auths.map(
-                    (auth) => auth._id)
-                ) : groups.auths.map(
+                    (auth) => auth._id
+                )) : groups.auths.map(
                     (auth) => auth._id
                 );
 
@@ -296,33 +306,18 @@ exports.getFindGroup = (req, res, next) => {
      * createdAt:
      *   min: Date
      *   max: Date
-     * auths:
+     * auth:
      *   access: String
      *   entity: String
      */
 
     const { createdAt, auth } = req.body;
-    const data = {};
 
-    // Filtre par dates
-    if (createdAt) {
-        if (createdAt.min || createdAt.max) {
-            data.createdAt = {};
-            if (createdAt.min) data.createdAt.$gte = new Date(createdAt.min);
-            if (createdAt.max) data.createdAt.$lte = new Date(createdAt.max);
-        }
-    }
-
-    // Filtre par autorisations
-    if (auth) {
-        if (auth.access || auth.entity) {
-            data.auths = {
-                $elemMatch: {},
-            };
-            if (auth.access) data.auths.$elemMatch.access = auth.access;
-            if (auth.entity) data.auths.$elemMatch.entity = auth.entity;
-        }
-    }
+    // check
+    const data = queryCheckAuth(
+        queryCheckCreatedAt({}, createdAt),
+        auth
+    );
 
     Group.find(data)
         .populate('auths')
@@ -357,27 +352,12 @@ exports.deleteFindGroup = (req, res, next) => {
      */
 
     const { createdAt, auth } = req.body;
-    const data = {};
 
-    // Filtre par dates
-    if (createdAt) {
-        if (createdAt.min || createdAt.max) {
-            data.createdAt = {};
-            if (createdAt.min) data.createdAt.$gte = new Date(createdAt.min);
-            if (createdAt.max) data.createdAt.$lte = new Date(createdAt.max);
-        }
-    }
-
-    // Filtre par autorisations
-    if (auth) {
-        if (auth.access || auth.entity) {
-            data.auths = {
-                $elemMatch: {},
-            };
-            if (auth.access) data.auths.$elemMatch.access = auth.access;
-            if (auth.entity) data.auths.$elemMatch.entity = auth.entity;
-        }
-    }
+    // check
+    const data = queryCheckAuth(
+        queryCheckCreatedAt({}, createdAt),
+        auth
+    );
 
     Group.find(data)
         .populate('auths')
@@ -426,25 +406,11 @@ exports.countGroup = (req, res, next) => {
     const { createdAt, auth } = req.body;
     const data = {};
 
-    // Filtre par dates
-    if (createdAt) {
-        if (createdAt.min || createdAt.max) {
-            data.createdAt = {};
-            if (createdAt.min) data.createdAt.$gte = new Date(createdAt.min);
-            if (createdAt.max) data.createdAt.$lte = new Date(createdAt.max);
-        }
-    }
-
-    // Filtre par autorisations
-    if (auth) {
-        if (auth.access || auth.entity) {
-            data.auths = {
-                $elemMatch: {},
-            };
-            if (auth.access) data.auths.$elemMatch.access = auth.access;
-            if (auth.entity) data.auths.$elemMatch.entity = auth.entity;
-        }
-    }
+    // check
+    data = queryCheckAuth(
+        queryCheckCreatedAt(data, createdAt),
+        auth
+    );
 
     Group
         .countDocuments(data)

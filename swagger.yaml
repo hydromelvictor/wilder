@@ -575,3 +575,578 @@ paths:
                   error:
                     type: string
                     example: error message
+
+
+  /security/levels:
+    post:
+      summary: Créer un nouveau level utilisateur
+      description: etre superuser et authentifié pour acceder a cette ressource
+      tags:
+        - Level
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nom du level
+                  example: critical
+                size:
+                  type: number
+                  description: Taille du level
+                  example: 100
+                auths:
+                  type: array
+                  description: liste des authorizations du level sur les differentes entités
+                  items:
+                    type: object
+                    properties:
+                      access:
+                        type: string
+                        description: Type d'authorization sur une entité read(r) - write(w) - execute(x)
+                        example: vxcrud
+                      entity:
+                        type: string
+                        description: Nom de l'entité sur lequel est defini l'authorization
+                        example: User
+      responses:
+        '201':
+          description: Level crée avec success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: level created
+                  values:
+                    type: string
+                    example: 5f3b1b3b3b3b3b3b3b3b3b3b
+
+        '400':
+          description: Error dans les données de la request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: this level already exists !!!
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: error creating level
+                  error:
+                    type: string
+                    example: error message
+
+  /security/levels/{id}:
+    get:
+      summary: Lecture des levels
+      tags:
+        - Level
+      parameters:
+        - name: id
+          in: path
+          required: false
+          description: id du level
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b3b
+      responses:
+        '200':
+          description: Level trouvé
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object 
+                    properties:
+                      values:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            example: 5f3b1b3b3b3b3b3b3b3b3b
+                          name:
+                            type: string
+                            example: critical
+                          size:
+                            type: number
+                            example: 100
+                          auths:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                  example: 5f3b1b3b3b3b3b3b3b3b3b
+                                access:
+                                  type: string
+                                  example: vxcrud
+                                entity:
+                                  type: string
+                                  example: User
+                                createdAt:
+                                  type: string
+                                  example: 2020-08-18T14:00:00.000Z
+                                updatedAt:
+                                  type: string
+                                  example: 2020-08-18T14:00:00.000Z
+                          createdAt:
+                            type: string
+                            example: 2020-08-18T14:00:00.000Z
+                          updatedAt:
+                            type: string
+                            example: 2020-08-18T14:00:00.000Z
+                      msg:
+                        type: string
+                        example: successfully
+
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: 5f3b1b3b3b3b3b3b3b3b3b
+                        name:
+                          type: string
+                          example: critical
+                        size:
+                          type: number
+                          example: 100
+                        auths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                                example: 5f3b1b3b3b3b3b3b3b3b3b
+                              access:
+                                type: string
+                                example: vxcrud
+                              entity:
+                                type: string
+                                example: User
+                              createdAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                              updatedAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                        createdAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                        updatedAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+    
+        '404':
+          description: Level non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: level not found
+        
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: error finding level
+                  error:
+                    type: string
+                    example: error message
+    
+    put:
+      summary: Mis a jour du level utilisateur
+      description: etre superuser et authentifié pour acceder a cette ressource
+      tags:
+        - Level
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id du level
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nom du level
+                  example: critical
+                size:
+                  type: number
+                  description: Taille du level
+                  example: 100
+                auths:
+                  type: array
+                  description: liste des authorizations du level sur les differentes entités
+                  items:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: id de l'authorization
+                        example: 5f3b1b3b3b3b3b3b3b3b3b
+                      access:
+                        type: string
+                        description: Type d'authorization sur une entité read(r) - write(w) - execute(x)
+                        example: vxcrud
+      responses:
+        '200':
+          description: Level mis a jour avec success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: level updated successfully
+
+        '400':
+          description: Error dans les données de la request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: name, size and authorizations are required or invalid !!!
+
+        '404':
+          description: Level non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: level not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error updating level
+                  error:
+                    type: string
+                    example: error message
+    
+    delete:
+      summary: Suppression des levels
+      tags:
+        - Level
+      parameters:
+        - name: id
+          in: path
+          required: false
+          description: id du level
+          schema:
+            type: ObjectId
+            example: 5f3b1b3b3b3b3b3b3b3b3b
+      responses:
+        '204':
+          description: Level supprimé avec success
+
+        '404':
+          description: Level non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: level not found
+
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error deleting level
+                  error:
+                    type: string
+                    example: error message
+  
+  /security/levels/find:
+    post:
+      summary: Recherche des levels
+      tags:
+        - Level
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: vxcrud
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '200':
+          description: Levels trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  values:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: 5f3b1b3b3b3b3b3b3b3b3b
+                        name:
+                          type: string
+                          example: critical
+                        size:
+                          type: number
+                          example: 100
+                        auths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                                example: 5f3b1b3b3b3b3b3b3b3b3b
+                              access:
+                                type: string
+                                example: vxcrud
+                              entity:
+                                type: string
+                                example: User
+                              createdAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                              updatedAt:
+                                type: string
+                                example: 2020-08-18T14:00:00.000Z
+                        createdAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                        updatedAt:
+                          type: string
+                          example: 2020-08-18T14:00:00.000Z
+                  msg:
+                    type: string
+                    example: successfully
+
+        '404':
+          description: Levels non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: levels not found
+        
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error finding levels
+                  error:
+                    type: string
+                    example: error message
+  
+  /security/levels/delete:
+    post:
+      summary: Suppression des levels
+      tags:
+        - Level
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: vxcrud
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '204':
+          description: Levels supprimé avec success
+
+        '404':
+          description: Levels non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: levels not found
+        
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error deleting levels
+                  error:
+                    type: string
+                    example: error message
+
+  /security/levels/count:
+    post:
+      summary: Comptage des levels
+      tags:
+        - Level
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                createdAt:
+                  type: object
+                  example: 2020-08-18T14:00:00.000Z
+                  properties:
+                    $gte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                    $lte:
+                      type: string
+                      example: 2020-08-18T14:00:00.000Z
+                auth:
+                  type: object
+                  properties:
+                    access:
+                      type: string
+                      example: vxcrud
+                    entity:
+                      type: string
+                      example: User
+      responses:
+        '200':
+          description: Levels trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  values:
+                    type: number
+                    example: 5
+                  msg:
+                    type: string
+                    example: count level
+
+        '404':
+          description: Levels non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: levels not found
+        
+        '500':
+          description: Error survenu du coté du server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Error counting levels
+                  error:
+                    type: string
+                    example: error message

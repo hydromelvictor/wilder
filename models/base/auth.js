@@ -8,6 +8,15 @@ const AuthSchema = mongoose.Schema({
      * write (w)
      * execute (x)
      */
+
+    /**
+     * execute (x)
+     * view (v)
+     * create (c)
+     * read (r)
+     * update (u)
+     * delete (d)
+     */
     access: {
         type: String,
         default: ''

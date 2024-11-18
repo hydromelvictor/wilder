@@ -2,17 +2,22 @@ const mongoose = require('mongoose');
 const Entity = require('./entity');
 
 const LevelSchema = mongoose.Schema({
-    model: {
+    name: {
         type: String,
-        default: 'Level'
+        required: true,
+        unique: true
     },
-    performs: [{
+    size: {
+        type: Number,
+        required: true,
+    },
+    auths: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Permission',
+        ref: 'Auth',
         required: true
     }]
 })
 
-LevelSchema.plugin(Entity)
+LevelSchema.add(Entity)
 
 module.exports = mongoose.model('Level', LevelSchema)
