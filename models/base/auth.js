@@ -21,6 +21,7 @@ const AuthSchema = mongoose.Schema({
         type: String,
         default: ''
     },
+    // entité
     entity: {
         type: String,
         required: true,

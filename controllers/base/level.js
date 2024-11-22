@@ -73,7 +73,7 @@ exports.createLevel = (req, res, next) => {
                         .save()
                         .then(level => {
                             res.status(201).json({
-                                values: level,
+                                values: level._id,
                                 msg: 'Created'
                             })
                         })
@@ -228,7 +228,7 @@ exports.getLevel = (req, res, next) => {
             res
                 .status(200)
                 .json({
-                    values: levels,
+                    values: id ? levels[0] : levels,
                     msg: 'Ok'
                 })
         })

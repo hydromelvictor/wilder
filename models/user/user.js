@@ -32,10 +32,6 @@ const UserSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tstring'
     },
-    middlename: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
-    },
     lastname: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tstring'
@@ -59,6 +55,9 @@ const UserSchema = mongoose.Schema({
     street: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tstring'
+    },
+    bio : {
+        type: String
     },
     isAuthenticated: {
         type: Boolean,
@@ -94,9 +93,6 @@ const UserSchema = mongoose.Schema({
         default: false,
         immutable: true
     },
-    otp: {
-        type: String
-    },
     gps: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Gps'
@@ -111,10 +107,6 @@ const UserSchema = mongoose.Schema({
         ref: 'Level',
         required: true
     },
-    emergencies: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-    }],
     friends: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
