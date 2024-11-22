@@ -12,7 +12,6 @@ const {
     getCountryName,
     isValidPhoneNumber 
 } = require('../utils/filters');
-const { on } = require('nodemailer/lib/xoauth2');
 require('dotenv').config();
 
 
@@ -31,7 +30,7 @@ exports.signup = (req, res, next) => {
 
     // verifier si l'utilisateur existe
     User
-        .findOne({ _id: username })
+        .findOne({ username: username })
         .then(user => {
             if (user) return res.status(400).json({
                 msg: `sorry ${username} already exists !!!`
@@ -70,7 +69,7 @@ exports.signup = (req, res, next) => {
                                         
                                             // creer l'utilisateur
                                             const newUser = new User({
-                                                _id: username,
+                                                username: username,
                                                 phone: normalPhone,
                                                 country: country,
                                                 group: group._id,
@@ -147,7 +146,7 @@ exports.login = (req, res, next) => {
     // verifier si l'utilisateur existe
     User
         .findOne({ $or: [
-            { _id: username },
+            { username: username },
             { phone: username }
         ]})
         .then(user => {
@@ -275,7 +274,7 @@ exports.forgot = (req, res, next) => {
     // verifier si l'utilisateur existe
     User
         .findOne({ $or: [
-            { _id: username },
+            { username: username },
             { phone: username }
         ]})
         .then(user => {
@@ -310,7 +309,7 @@ exports.reset = (req, res, next) => {
     // verifier si l'utilisateur existe
     User
         .findOne({ $or: [
-            { _id: username },
+            { username: username },
             { phone: username }
         ]})
         .then(user => {
