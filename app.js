@@ -12,8 +12,9 @@ require('dotenv').config();
 
 // the routes
 const groupRts = require('./routes/base/group')
-const levelRts = require('./routes/base/level')
-const AuthRts = require('./routes/user/auth')
+
+const authRts = require('./routes/user/auth')
+const userRts = require('./routes/user/user')
 
 
 // connexion a la base de donnees
@@ -45,8 +46,8 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // endpoint root
 app.use('/security/groups', groupRts)
-app.use('/security/levels', levelRts)
 
-app.use('/auth', AuthRts)
+app.use('/auth', authRts)
+app.use('/users', userRts)
 
 module.exports = app;

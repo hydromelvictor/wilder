@@ -1,23 +1,25 @@
 const express = require('express');
 const router = express.Router();
 
+const use = require('../../middlewares/use')
+
 const groupCrtls = require('../../controllers/base/group')
 
 
 // create
-router.post('/', groupCrtls.createGroup)
+router.post('/', use, groupCrtls.createGroup)
 // read
-router.get('/:id?', groupCrtls.getGroup)
+router.get('/:id?', use, groupCrtls.getGroup)
 // update
-router.put('/:id', groupCrtls.updateGroup)
+router.put('/:id', use, groupCrtls.updateGroup)
 // delete
-router.delete('/:id?', groupCrtls.deleteGroup)
+router.delete('/:id?', use, groupCrtls.deleteGroup)
 
 // find, deleteFind
-router.post('/find', groupCrtls.getFindGroup)
-router.post('/delete', groupCrtls.deleteFindGroup)
+router.post('/find', use, groupCrtls.getFindGroup)
+router.post('/delete', use, groupCrtls.deleteFindGroup)
 
 // count
-router.post('/count', groupCrtls.countGroup)
+router.post('/count', use, groupCrtls.countGroup)
 
 module.exports = router

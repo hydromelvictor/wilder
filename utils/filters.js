@@ -4,12 +4,6 @@ countries.registerLocale(require('i18n-iso-countries/langs/en.json'));
 require('dotenv').config();
 
 
-function JWTokenChoice(user) {
-    if (user.role === 'admin' || user.role === 'superuser') return process.env.JWT_STAFF_SECRET;
-    else return process.env.JWT_USER_SECRET
-}
-
-
 function isValidPhoneNumber(phone) {
     const pn = new PhoneNumber(phone);
     return pn.isValid();
@@ -27,7 +21,7 @@ function getCountryName(phone) {
 
 
 module.exports = {
-    JWTokenChoice,
+    isValidPhoneNumber,
     getInternationalPhoneNumber,
     getCountryName
 }

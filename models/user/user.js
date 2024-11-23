@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 require('dotenv').config();
 
-const Entity = require('../base/entity');
-
 
 const UserSchema = mongoose.Schema({
     username: {
@@ -12,49 +10,41 @@ const UserSchema = mongoose.Schema({
         required: true
     },
     email: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed,
+        unique: true,
     },
     password: {
         type: String,
         required: true
     },
     phone: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring',
+        type: mongoose.Schema.Types.Mixed,
+        unique: true,
         required: true
     },
     imageUrl: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     firstname: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     lastname: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     birth: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tdate'
+        type: mongoose.Schema.Types.Mixed
     },
     sex: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     country: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     city: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     street: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tstring'
+        type: mongoose.Schema.Types.Mixed
     },
     bio : {
         type: String
@@ -68,17 +58,17 @@ const UserSchema = mongoose.Schema({
         default: false
     },
     state: {
-        type: String,
         /**
          * all : profile ouvert a tous
-         * fs : friends & followers
-         * fd : friends
-         * ps : no body
+         * hidden : profile caché a tous
+         * protected : profile ouvert a ses amis et followers
+         * private : profile ouvert a ses amis seulement
          */
+        type: String,
+        enum: ['all', 'hidden', 'protected', 'private', 'custom'], // Enum pour restreindre les valeurs possibles
         default: 'all'
     },
     status: {
-        type: String,
         /**
          * waiting : status a la creation de compte
          * active : status apres un login
@@ -86,7 +76,9 @@ const UserSchema = mongoose.Schema({
          * delete: status d'un compte supprimer par l'utilisateur
          * suspend: status d'un compte suspendu pour mauvaise conduite
          */
-        default: 'waiting'
+        type: String,
+        enum: ['delete', 'suspend', 'inactive', 'active', 'waiting'], // Enum pour restreindre les valeurs possibles
+        default: 'waiting',
     },
     staff: {
         type: Boolean,
@@ -102,12 +94,11 @@ const UserSchema = mongoose.Schema({
         ref: 'Group',
         required: true
     },
-    level: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Level',
-        required: true
-    },
     friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    requests: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
@@ -122,8 +113,27 @@ const UserSchema = mongoose.Schema({
     blockeds: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
-})
+    }],
+    deletedAt: {
+        type: Date,
+    },
+    // Dernière date de mise en statut suspend
+    suspendedAt: {
+        type: Date,
+    },
+    // Dernière date de statut online = true
+    onlinedAt: {
+        type: Date,
+    },
+    // Dernière date de mise en statut inactive
+    inactivedAt: {
+        type: Date,
+    },
+    // Dernière action critique
+    criticalAt: {
+        type: Date,
+    }
+}, { timestamps: true })
 
 UserSchema.set('toJSON', {
     transform: (doc, ret) => {
@@ -132,7 +142,27 @@ UserSchema.set('toJSON', {
     }
 });
 
-UserSchema.add(Entity)
 UserSchema.plugin(uniqueValidator)
+
+
+UserSchema.pre('save', function (next) {
+    if (this.isModified('status')) {
+        if (this.status === 'delete') {
+            this.deletedAt = new Date();
+        }
+        if (this.status === 'suspend') {
+            this.suspendedAt = new Date();
+        }
+        if (this.status === 'inactive') {
+            this.inactivedAt = new Date();
+        }
+    }
+
+    if (this.isModified('online') && this.online === true) {
+        this.onlinedAt = new Date();
+    }
+
+    next();
+});
 
 module.exports = mongoose.model('User', UserSchema)

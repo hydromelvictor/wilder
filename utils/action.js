@@ -1,33 +1,44 @@
+module.exports = (user, entity = '') => {
 
-module.exports = (user, organism = '') => {
+    if (!user) {
+        throw new Error('User is required');
+    }
 
-    const perform = organism !== '' ? user.level.performs.filter(
-        perform => perform.organism === organism
-    )[0] : {}
+    const auth = entity
+        ? user.group?.auths?.find(auth => auth.entity === entity)
+        : null;
 
-    const auth = organism !== '' ? user.role.auths.filter(
-        auth => auth.organism === organism
-    )[0] : {}
+    const hasAccess = (access, ...permissions) =>
+        permissions.every(permission => access?.includes(permission));
 
     return {
         status: {
-            isActive: user.status === 'active' ? true : false,
-            isWaiting: user.status === 'waiting' ? true : false,
-            isInactive: user.status === 'inactive' ? true : false,
-            isDelete: user.status === 'delete' ? true : false,
-            isSuspend: user.status === 'suspend' ? true : false
+            isActive: user.status === 'active',
+            isWaiting: user.status === 'waiting',
+            isInactive: user.status === 'inactive',
+            isDelete: user.status === 'delete',
+            isSuspend: user.status === 'suspend'
         },
-        size: {
-            isView: perform?.access.includes('v'),
-            isRead: perform?.access.includes('v') && perform.access.includes('r'),
-            isBuild: perform?.access.includes('v') && perform.access.includes('r') && perform?.access.includes('c') && perform.access.includes('u'),
-            isDelete: perform?.access.includes('v') && perform.access.includes('d'),
-            isExec: perform?.access.includes('v') && perform.access.includes('x')
+        group: {
+            isRead: hasAccess(auth?.access, 'r'),
+            isWrite: hasAccess(auth?.access, 'r', 'w'),
+            isExec: hasAccess(auth?.access, 'r', 'x')
         },
-        auth: {
-            isRead: auth?.access.includes('r'),
-            isWrite: auth?.access.includes('r') && auth?.access.includes('w'),
-            isExec: auth?.access.includes('r') && auth?.access.includes('x')
+        isVisible: () => {
+            const { state, _id, friends = [], followers = [], customers = [] } = user;
+
+            switch (state) {
+                case 'all':
+                    return true;
+                case 'hidden':
+                    return false;
+                case 'protected':
+                    return friends.includes(_id) || followers.includes(_id);
+                case 'private':
+                    return friends.includes(_id);
+                default:
+                    return false;
+            }
         }
-    }
-}
+    };
+};

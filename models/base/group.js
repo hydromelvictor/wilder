@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Entity = require('./entity');
 
 
 const GroupSchema = mongoose.Schema({
@@ -17,6 +16,5 @@ const GroupSchema = mongoose.Schema({
     }]
 })
 
-GroupSchema.add(Entity)
 
 module.exports = mongoose.model('Group', GroupSchema)

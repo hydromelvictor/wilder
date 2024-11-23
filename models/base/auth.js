@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Entity = require('./entity');
 
 
 const AuthSchema = mongoose.Schema({
@@ -9,14 +8,6 @@ const AuthSchema = mongoose.Schema({
      * execute (x)
      */
 
-    /**
-     * execute (x)
-     * view (v)
-     * create (c)
-     * read (r)
-     * update (u)
-     * delete (d)
-     */
     access: {
         type: String,
         default: ''
@@ -28,7 +19,5 @@ const AuthSchema = mongoose.Schema({
         immutable: true
     }
 })
-
-AuthSchema.add(Entity)
 
 module.exports = mongoose.model('Auth', AuthSchema)

@@ -52,7 +52,8 @@ server.on('listening', () => {
 });
 
 launch.serverEvents.on('serverStarted', () => {
-    launch.secure()
+    launch.createSuperUser();
+    launch.createDefaultUserGroup();
 })
 
 server.listen(port, process.env.HOST, () => {

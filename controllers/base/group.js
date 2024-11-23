@@ -18,6 +18,8 @@
 const Group = require('../../models/base/group')
 const Auth = require('../../models/base/auth')
 const logger = require('../../logger');
+const action = require('../../utils/action');
+
 const { 
     verifyAuth, 
     queryCheckAuth,
@@ -33,9 +35,25 @@ exports.createGroup = (req, res, next) => {
      * name : String
      * auths : Array
      *  items:
-     *      access
-     *      auths
+     *      access: string
+     *      entity: string
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isWrite) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
 
     const { name, auths } = req.body;
 
@@ -112,6 +130,23 @@ exports.updateGroup = (req, res, next) => {
      * auths : Array
      *     { access: 'rwx', id: 'ObjectId'}
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isWrite) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
     const { name, auths } = req.body;
     const { id } = req.params;
     
@@ -217,6 +252,23 @@ exports.getGroup = (req, res, next) => {
     /**
      * params: id
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isRead) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
     const { id } = req.params;
     Group
         .find( id ? { _id: id } : {})
@@ -246,6 +298,24 @@ exports.deleteGroup = (req, res, next) => {
     /**
      * params: id
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isExec
+    ) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+    
     const { id } = req.params;
 
     Group
@@ -311,6 +381,22 @@ exports.getFindGroup = (req, res, next) => {
      *   entity: String
      */
 
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isRead) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
     const { createdAt, auth } = req.body;
 
     // check
@@ -350,6 +436,23 @@ exports.deleteFindGroup = (req, res, next) => {
      *   access: String
      *   entity: String
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff || !actioner.group.isExec
+    ) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
 
     const { createdAt, auth } = req.body;
 
@@ -402,6 +505,22 @@ exports.countGroup = (req, res, next) => {
      *  access: String
      *  entity: String
      */
+
+    const { user } = req.auth;
+
+    if (!user) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
+
+    const actioner = action(user, 'group');
+
+    if (!user.staff|| !actioner.group.isRead) {
+        return res.status(401).json({
+            msg: 'Unauthorized access',
+        });
+    }
 
     const { createdAt, auth } = req.body;
     const data = {};

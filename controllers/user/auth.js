@@ -2,16 +2,16 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 
-const User = require('../models/user');
-const Level = require('../models/level');
-const Group = require('../models/group');
+const User = require('../../models/user/user');
+const Group = require('../../models/base/group');
 
-const logger = require('../logger');
+const logger = require('../../logger');
+const action = require('../../utils/action');
 const {
-    getInternationalPhoneNumber, 
+    getInternationalPhoneNumber,
     getCountryName,
-    isValidPhoneNumber 
-} = require('../utils/filters');
+    isValidPhoneNumber
+} = require('../../utils/filters');
 require('dotenv').config();
 
 
@@ -22,11 +22,18 @@ exports.signup = (req, res, next) => {
      * username
      * phone
      * group
-     * level
      * password
      */
 
-    const { username, phone, password, group, level } = req.body;
+    const { author } = req.auth;
+
+    if (author && !author.staff) return res.status(403).json({ msg: 'Unauthorized access' });
+
+    const actioner = author ? action(author, 'user'): null;
+
+    if (author && actioner && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
+
+    const { username, phone, password, group } = req.body;
 
     // verifier si l'utilisateur existe
     User
@@ -52,52 +59,40 @@ exports.signup = (req, res, next) => {
 
                     // verifier si le groupe existe
                     Group
-                        .findOne({ name: group })
+                        .findOne({ name: author ? group : 'user' })
                         .then(group => {
                             if (!group) return res.status(404).json({ msg: 'group not found' })
                             
-                            // verifier si le level existe
-                            Level
-                                .findOne({ name: level })
-                                .then(level => {
-                                    if (!level) return res.status(404).json({ msg: 'level not found' })
-
-                                    // crypter le password
-                                    bcrypt
-                                        .hash(password, 10)
-                                        .then(hash => {
-                                        
-                                            // creer l'utilisateur
-                                            const newUser = new User({
-                                                username: username,
-                                                phone: normalPhone,
-                                                country: country,
-                                                group: group._id,
-                                                level: level._id,
-                                                staff: req.auth.staff || false,
-                                                password: hash
-                                            })
-                                        
-                                            newUser
-                                                .save()
-                                                .then(user => res.status(201).json({
-                                                    store: user._id,
-                                                    msg: 'user created successfully'
-                                                }))
-                                                .catch(err => {
-                                                    logger.error(err)
-                                                    res.status(500).json({ 
-                                                        msg: 'error while creating user',
-                                                        error: err.message
-                                                     })
-                                                })
-                                        })
+                            // crypter le password
+                            bcrypt
+                                .hash(password, 10)
+                                .then(hash => {
+                            
+                                    // creer l'utilisateur
+                                    const newUser = new User({
+                                        username: username,
+                                        phone: {
+                                            value: normalPhone,
+                                            isPublic: true
+                                        },
+                                        country: country,
+                                        group: group._id,
+                                        staff: (author && group.name !== 'user') ? true : false,
+                                        password: hash
+                                    })
+                            
+                                    newUser
+                                        .save()
+                                        .then(user => res.status(201).json({
+                                            store: user._id,
+                                            msg: 'user created successfully'
+                                        }))
                                         .catch(err => {
                                             logger.error(err)
                                             res.status(500).json({ 
                                                 msg: 'error while creating user',
                                                 error: err.message
-                                             })
+                                            })
                                         })
                                 })
                                 .catch(err => {
@@ -105,7 +100,7 @@ exports.signup = (req, res, next) => {
                                     res.status(500).json({ 
                                         msg: 'error while creating user',
                                         error: err.message
-                                     })
+                                    })
                                 })
                         })
                         .catch(err => {
@@ -216,9 +211,14 @@ exports.login = (req, res, next) => {
 
 // logout a user
 exports.logout = (req, res, next) => {
+
+    const { user } = req.auth;
+
+    if (!user) return res.status(404).json({ msg: 'user not found' });
+
     User
         .updateOne(
-            { _id: req.auth.userId },
+            { _id: user._id },
             {
                 status: 'waiting',
                 isAuthenticated: false,
@@ -238,28 +238,20 @@ exports.logout = (req, res, next) => {
 
 // refresh a user token
 exports.refresh = (req, res, next) => {
-    User
-        .findOne({ _id: req.auth.userId })
-        .then(user => {
-            if (!user) return res.status(404).json({ msg: 'user not found' })
+    
+    const { user } = req.auth;
 
-            res.status(200).json({
-                store: user._id,
-                token: jwt.sign(
-                    { _id: user._id },
-                    process.env.JWT_USER_SECRET,
-                    { expiresIn: '24h' }
-                ),
-                msg: 'token refreshed successfully'
-            })
-        })
-        .catch(err => {
-            logger.error(err)
-            res.status(500).json({ 
-                msg: 'error while refreshing token',
-                error: err.message
-            })
-        })
+    if (!user) return res.status(404).json({ msg: 'user not found' });
+
+    return res.status(200).json({
+        store: user._id,
+        token: jwt.sign(
+            { _id: user._id },
+            process.env.JWT_USER_SECRET,
+            { expiresIn: '24h' }
+        ),
+        msg: 'token refreshed successfully'
+    })
 }
 
 
@@ -304,13 +296,20 @@ exports.reset = (req, res, next) => {
      * password
      */
 
+    const { author } = req.auth;
+    if (!author) return res.status(403).json({ msg: 'Unauthorized access' });
+
+    const actioner = action(author, 'user');
+
+    if (author && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
+
     const { username, password } = req.body;
 
     // verifier si l'utilisateur existe
     User
         .findOne({ $or: [
-            { username: username },
-            { phone: username }
+            { username: user ? user.username : username },
+            { phone: user ? user.phone : username }
         ]})
         .then(user => {
             if (!user) return res.status(404).json({ msg: 'user not found' })

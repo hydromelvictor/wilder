@@ -21,6 +21,5 @@ const GpsSchema = mongoose.Schema({
     }
 })
 
-GpsSchema.plugin(Entity)
 
 mongoose.model('Gps', GpsSchema)
