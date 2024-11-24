@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 
-const User = require('../../models/user/user');
+const User = require('../../models/user/index');
 const Group = require('../../models/base/group');
 
 const logger = require('../../logger');
@@ -34,6 +34,14 @@ exports.signup = (req, res, next) => {
     if (author && actioner && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
 
     const { username, phone, password, group } = req.body;
+    
+    if (!username || !phone || !password ) {
+        return res.status(400).json({ msg: 'please fill all fields' })
+    }
+
+    if (username.includes('_')) {
+        return res.status(403).json({ msg: '_ not authorize in name'})
+    }
 
     // verifier si l'utilisateur existe
     User
@@ -75,7 +83,10 @@ exports.signup = (req, res, next) => {
                                             value: normalPhone,
                                             isPublic: true
                                         },
-                                        country: country,
+                                        country: {
+                                            value: country,
+                                            isPublic: true
+                                        },
                                         group: group._id,
                                         staff: (author && group.name !== 'user') ? true : false,
                                         password: hash
@@ -138,12 +149,13 @@ exports.login = (req, res, next) => {
     
     const { username, password } = req.body;
 
+    if (!username || !password) {
+        return res.status(400).json({ msg: 'please fill all fields' })
+    }
+
     // verifier si l'utilisateur existe
     User
-        .findOne({ $or: [
-            { username: username },
-            { phone: username }
-        ]})
+        .findOne({ username: username })
         .then(user => {
             if (!user) return res.status(404).json({ msg: 'user not found' })
 
@@ -263,18 +275,19 @@ exports.forgot = (req, res, next) => {
 
     const { username } = req.body;
 
+    if (!username) {
+        return res.status(400).json({ msg: 'please fill all fields' })
+    }
+
     // verifier si l'utilisateur existe
     User
-        .findOne({ $or: [
-            { username: username },
-            { phone: username }
-        ]})
+        .findOne({ username: username })
         .then(user => {
             if (!user) return res.status(404).json({ msg: 'user not found' })
 
             // generer un otp
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            res.status(200).json({ 
+            res.status(200).json({
                 store: otp,
                 msg: 'otp generated successfully'
             })
@@ -297,20 +310,20 @@ exports.reset = (req, res, next) => {
      */
 
     const { author } = req.auth;
-    if (!author) return res.status(403).json({ msg: 'Unauthorized access' });
 
-    const actioner = action(author, 'user');
+    const actioner = author ? action(author, 'user') : null;
 
-    if (author && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
+    if (author && actioner && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
 
     const { username, password } = req.body;
 
+    if (!author && !username || !password) {
+        return res.status(400).json({ msg: 'please fill all fields' })
+    }
+
     // verifier si l'utilisateur existe
     User
-        .findOne({ $or: [
-            { username: user ? user.username : username },
-            { phone: user ? user.phone : username }
-        ]})
+        .findOne({ username: author ? author.username : username })
         .then(user => {
             if (!user) return res.status(404).json({ msg: 'user not found' })
 

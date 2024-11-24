@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const logger = require('../logger');
-const User = require('../models/user/user');
+const User = require('../models/user/index');
 
 
 module.exports = async (req, res, next) => {
@@ -21,15 +21,21 @@ module.exports = async (req, res, next) => {
 
         // Vérifie et décode le token JWT
         const decodedToken = jwt.verify(token, process.env.JWT_USER_SECRET);
-        if (!decodedToken || !decodedToken.userId) {
+        if (!decodedToken || !decodedToken._id) {
             throw new Error('Invalid token');
         }
 
         // Récupère l'utilisateur depuis la base de données
         const authenticatedUser = await User
-            .findOne({ _id: decodedToken.userId })
-            .populate('group');
-
+            .findOne({ _id: decodedToken._id })
+            .populate({
+                path: 'group',
+                populate: {
+                    path: 'auths',
+                    model: 'Auth'
+                }
+            })
+        console.log(authenticatedUser)
         if (!authenticatedUser) {
             throw new Error('User not found, please register');
         }

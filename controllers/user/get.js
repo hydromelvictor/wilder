@@ -1,52 +1,8 @@
 require('dotenv').config();
 
-
-const User = require('../../models/user/user');
+const User = require('../../models/user/index');
 const logger = require('../../logger');
 const action = require('../../utils/action');
-
-
-exports.getUsers = (req, res, next) => {
-
-    const { author } = req.auth;
-    const { id } = req.params;
-
-    if (!author) {
-        return res.status(400).json({ msg: 'User not found' })
-    }
-
-    if (!id && !author.staff) {
-        return res.status(400).json({ msg: 'You do not have permission to read users' })
-    }
-
-    const actioner = action(author, 'user')
-
-    if (!actioner.group.isRead) {
-        return res.status(403).json({ msg: 'You do not have permission to read user' })
-    }
-    
-    User
-        .find( id ? { _id: id } : {})
-        .populate('gps')
-        .populate('group')
-        .then(users => {
-            if (!users || users.length === 0) {
-                return res.status(404).json({ msg: 'users not found' })
-            }
-            return res.status(200).json({
-                store: id ? users[0] : users,
-                msg: 'get user'
-            })
-        })
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
 
 exports.getUserFriends = (req, res, next) => {
     const { author } = req.auth;
@@ -83,7 +39,6 @@ exports.getUserFriends = (req, res, next) => {
         })
 }
 
-
 exports.getUserRequests = (req, res, next) => {
     const { author } = req.auth;
     const { id } = req.params;
@@ -118,7 +73,6 @@ exports.getUserRequests = (req, res, next) => {
             })
         })
 }
-
 
 exports.getUserFollowers = (req, res, next) => {
     const { author } = req.auth;
@@ -155,7 +109,6 @@ exports.getUserFollowers = (req, res, next) => {
         })
 }
 
-
 exports.getUserFollowings = (req, res, next) => {
     const { author } = req.auth;
     const { id } = req.params;
@@ -190,7 +143,6 @@ exports.getUserFollowings = (req, res, next) => {
             })
         })
 }
-
 
 exports.getUserBlockeds = (req, res, next) => {
     const { author } = req.auth;
@@ -227,7 +179,6 @@ exports.getUserBlockeds = (req, res, next) => {
         })
 }
 
-
 // ceux avec qui vous avez les memes amis
 exports.getUsersWithSameFriends = (req, res, next) => {
     const { author } = req.auth;
@@ -261,7 +212,6 @@ exports.getUsersWithSameFriends = (req, res, next) => {
             })
         })
 }
-
 
 // ceux avec qui vous avez les memes followers
 exports.getUsersWithSameFollowers = (req, res, next) => {
@@ -298,7 +248,6 @@ exports.getUsersWithSameFollowers = (req, res, next) => {
         })
 }
 
-
 // ceux avec qui vous avez les memes followings
 exports.getUsersWithSameFollowings = (req, res, next) => {
     const { author } = req.auth;
@@ -333,7 +282,6 @@ exports.getUsersWithSameFollowings = (req, res, next) => {
             })
         })
 }
-
 
 // vos amis qui sont en ligne
 exports.getOnlineFriends = (req, res, next) => {
@@ -370,219 +318,16 @@ exports.getOnlineFriends = (req, res, next) => {
         })
 }
 
-
+// recherche d'utilisateurs
 exports.getSearchedUsers = (req, res, next) => {
     const { search } = req.body
 
     User
         .find({ $text: { $search: search } })
-        .populate('email')
-        .populate('phone')
-        .populate('imageUrl')
-        .populate('firstname')
-        .populate('lastname')
-        .populate('birth')
-        .populate('sex')
-        .populate('country')
-        .populate('city')
-        .populate('street')
         .populate('gps')
-        .populate('group')
-        .populate('level')
-        .populate('friends')
-        .populate('followers')
-        .populate('followings')
-        .populate('blocked')
         .then(users => res.status(200).json({
             store: users,
             msg: 'get users'
-        }))
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.updateOneUser = (req, res, next) => {
-    const userId = req.auth.otherUserId || req.auth.userId
-
-    const { username, bio, state } = req.body
-
-    User
-        .findOne({ _id: userId })
-        .then(user => {
-            User
-                .updateOne(
-                    { _id: user._id },
-                    {
-                        username: username || user.username,
-                        bio: bio || user.bio,
-                        state: state || user.state
-                    }
-                )
-                .then(user => res.status(200).json({
-                    store: user._id,
-                    msg: 'user upated successfully'
-                }))
-                .catch(err => {
-                    logger.error(err)
-                    return res.status(500).json({ 
-                        msg: 'error',
-                        err: err.message
-                    })
-                })
-        })
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-
-exports.criticalUpdate = (req, res, next) => {
-    const userId = req.auth.otherUserId || req.auth.userId
-    
-    User
-        .findOne({ _id: userId })
-        .then(user => {
-            if (!user) {
-                return res.status(404).json({ msg: 'user not found' })
-            }
-            
-            if (!(req.body.status in ['waiting', 'active', 'inactive', 'delete', 'suspend'])) {
-                return res.status(400).json({ msg: 'status not valid' })
-            }
-
-            User
-                .updateOne(
-                    { _id: user._id },
-                    {
-                        isAuthenticated: user.isAuthenticated ? false : true,
-                        online: user.online ? false : true,
-                        status: req.body.status || user.status,
-                    }
-                )
-                .then(user => res.status(200).json({
-                    store: user._id,
-                    msg: 'user upated successfully'
-                }))
-                .catch(err => {
-                    logger.error(err)
-                    return res.status(500).json({ 
-                        msg: 'error',
-                        err: err.message
-                    })
-                })
-        })
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.deleteOneUser = (req, res, next) => {
-    const userId = req.auth.otherUserId || req.auth.userId
-    
-    User
-        .findOne({ _id: userId })
-        .then(user => {
-            if (!user) {
-                return res.status(404).json({ msg: 'user not found' })
-            }
-
-            User
-                .updateOne(
-                    { _id: user._id },
-                    {
-                        email: 'delete' + user.email,
-                        status: 'delete',
-                        isAuthenticated: false,
-                        online: false
-                    }
-                )
-                .then(() => res.status(204).json())
-                .catch(err => {
-                    logger.error(err)
-                    return res.status(500).json({ 
-                        msg: 'error',
-                        err: err.message
-                    })
-                })
-        })
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.deleteAllUsers = (req, res, next) => {
-    User
-        .deleteMany()
-        .then(() => res.status(204).json())
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.deleteSearchedUsers = (req, res, next) => {
-    const { search } = req.body
-
-    User
-        .deleteMany({ $text: { $search: search } })
-        .then(() => res.status(204).json())
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.deleteUsers = (req, res, next) => {
-    const { users } = req.body
-
-    User
-        .deleteMany({ _id: { $in: users } })
-        .then(() => res.status(204).json())
-        .catch(err => {
-            logger.error(err)
-            return res.status(500).json({ 
-                msg: 'error',
-                err: err.message
-            })
-        })
-}
-
-
-exports.countUsers = (req, res, next) => {
-    User
-        .countDocuments()
-        .then(count => res.status(200).json({
-            store: count,
-            msg: 'count users'
         }))
         .catch(err => {
             logger.error(err)

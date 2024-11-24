@@ -14,11 +14,6 @@ router.get('/:id?', use, groupCrtls.getGroup)
 router.put('/:id', use, groupCrtls.updateGroup)
 // delete
 router.delete('/:id?', use, groupCrtls.deleteGroup)
-
-// find, deleteFind
-router.post('/find', use, groupCrtls.getFindGroup)
-router.post('/delete', use, groupCrtls.deleteFindGroup)
-
 // count
 router.post('/count', use, groupCrtls.countGroup)
 

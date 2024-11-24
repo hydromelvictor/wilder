@@ -14,7 +14,7 @@ require('dotenv').config();
 const groupRts = require('./routes/base/group')
 
 const authRts = require('./routes/user/auth')
-const userRts = require('./routes/user/user')
+const userRts = require('./routes/user/index')
 
 
 // connexion a la base de donnees

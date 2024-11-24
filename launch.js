@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const Group = require('./models/base/group');
 const Auth = require('./models/base/auth');
-const User = require('./models/user/user');
+const User = require('./models/user/index');
 
 const logger = require('./logger');
 
@@ -127,7 +127,10 @@ async function createSuperUser() {
                                     username: 'admin::unknown',
                                     email: process.env.SUPER_USER_EMAIL,
                                     password: process.env.SUPER_USER_PASSWORD,
-                                    phone: process.env.SUPER_USER_PHONE,
+                                    phone: {
+                                        value: process.env.SUPER_USER_PHONE,
+                                        isPublic: true
+                                    },
                                     staff: true,
                                     group: savedGroup._id,
                                 });

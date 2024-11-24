@@ -161,7 +161,7 @@ UserSchema.pre('save', function (next) {
     if (this.isModified('online') && this.online === true) {
         this.onlinedAt = new Date();
     }
-
+ 
     next();
 });
 
