@@ -55,17 +55,25 @@ exports.getUsers = (req, res, next) => {
 
 exports.updateUser = (req, res, next) => {
     /**
-     * username
-     * email
-     * phone
-     * imageUrl
-     * firstname
-     * lastname
-     * birth
-     * sex
-     * city
-     * street
-     * bio
+     * username, 
+     * email,
+     * emailView, 
+     * phone,
+     * phoneView, 
+     * firstname,
+     * firstnameView,
+     * lastname,
+     * lastnameView,
+     * birth,
+     * birthView,
+     * sex,
+     * countryView,
+     * city,
+     * cityView,
+     * street,
+     * streetView,
+     * imageUrlView,
+     * bio, 
      * state
      */
 
@@ -78,18 +86,27 @@ exports.updateUser = (req, res, next) => {
     const { 
         username,
         email,
+        emailView,
         phone,
+        phoneView,
         firstname,
+        firstnameView,
         lastname,
+        lastnameView,
         birth,
+        birthView,
         sex,
+        countryView,
         city,
+        cityView,
         street,
+        streetView,
+        imageUrlView,
         bio, 
-        state 
+        state
     } = req.body
 
-    country = user.country
+    country = user.country.value
     imageUrl = user.imageUrl || null
 
     if (phone) {
@@ -101,10 +118,11 @@ exports.updateUser = (req, res, next) => {
     }
 
     if (req.file) {
-        imageUrl = req.protocol + '://' + req.get('host') + '/images/' + req.file.filename
+        imageUrl.value = req.protocol + '://' + req.get('host') + '/images/' + req.file.filename
+        imageUrl.isPublic = imageUrlView ? false : true
 
-        if (user.imageUrl) {
-            const filename = user.imageUrl.split('/images/')[1]
+        if (user.imageUrl.value) {
+            const filename = user.imageUrl.value.split('/images/')[1]
             fs.unlink(`images/${filename}`, () => {
                 logger.info('image deleted')
             })
@@ -116,16 +134,40 @@ exports.updateUser = (req, res, next) => {
             { _id: user._id },
             {
                 username: username || user.username,
-                email: email || user.email,
-                phone: phone || user.phone,
+                email: {
+                    value: email || user.email?.value,
+                    isPublic: emailView ? false : true
+                },
+                phone: {
+                    value: phone || user.phone?.value,
+                    isPublic: phoneView ? false : true
+                },
                 imageUrl: imageUrl,
-                firstname: firstname || user.firstname,
-                lastname: lastname || user.lastname,
-                birth: birth || user.birth,
+                firstname: {
+                    value: firstname || user.firstname?.value,
+                    isPublic: firstnameView ? false : true
+                },
+                lastname: {
+                    value: lastname || user.lastname?.value,
+                    isPublic: lastnameView ? false : true
+                },
+                birth: {
+                    value: birth || user.birth?.value,
+                    isPublic: birthView ? false : true
+                },
                 sex: sex || user.sex,
-                country: country,
-                city: city || user.city,
-                street: street || user.street,
+                country: {
+                    value: country,
+                    isPublic: countryView ? false : true
+                },
+                city: {
+                    value: city || user.city?.value,
+                    isPublic: cityView ? false : true
+                },
+                street: {
+                    value: street || user.street?.value,
+                    isPublic: streetView ? false : true
+                },
                 bio: bio || user.bio,
                 state: state || user.state
             }
@@ -144,33 +186,43 @@ exports.updateUser = (req, res, next) => {
 }
 
 
-
 exports.deleteOneUser = (req, res, next) => {
 
     const { user } = req.auth
+    const { id } = req.auth
+
+    const actioner = action(user, 'user')
 
     if (!user) {
         return res.status(400).json({ msg: 'User not found' })
     }
+
+    if (id && !actioner.group.isWrite) {
+        return res.status(403).json({ msg: 'You do not have permission to read user' })
+    }
+
+    if (id && !user.staff) {
+        res.status(403).json({ msg: 'You do not have permission to change status in delete' })
+    }
     
-    if (user.staff) {
+    if (user.staff && id && user._id === id) {
         res.status(403).json({ msg: 'You do not have permission to change status in delete' })
     }
 
     User
         .updateOne(
-            { _id: user._id},
+            { _id: id ? id : user._id},
             {
-                username: '_' + user.username,
-                email: user.email ? '_' + user.email : null,
-                phone: user.phone ? '_' + user.phone : null,
                 isAuthenticated: false,
                 online: false,
                 state: 'hidden',
                 status: 'delete'
             }
         )
-        .then(() => res.status(204).json())
+        .then(() => {
+            // envoyer un sms pour supperssion dans 4semaine si non recuperer
+            return res.status(204).json()
+        })
         .catch(err => {
             logger.error(err)
             return res.status(500).json({ 

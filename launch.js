@@ -125,7 +125,10 @@ async function createSuperUser() {
                                 // Créez le super utilisateur
                                 const user = new User({
                                     username: 'admin::unknown',
-                                    email: process.env.SUPER_USER_EMAIL,
+                                    email: {
+                                        value: process.env.SUPER_USER_EMAIL,
+                                        isPublic: true
+                                    },
                                     password: process.env.SUPER_USER_PASSWORD,
                                     phone: {
                                         value: process.env.SUPER_USER_PHONE,

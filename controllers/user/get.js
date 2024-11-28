@@ -4,15 +4,16 @@ const User = require('../../models/user/index');
 const logger = require('../../logger');
 const action = require('../../utils/action');
 
+
 exports.getUserFriends = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     const { id } = req.params;
 
-    if (!author || !id) {
+    if (!user || !id) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
@@ -39,15 +40,16 @@ exports.getUserFriends = (req, res, next) => {
         })
 }
 
+
 exports.getUserRequests = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     const { id } = req.params;
 
-    if (!author || !id) {
+    if (!user || !id) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
     
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
@@ -75,14 +77,14 @@ exports.getUserRequests = (req, res, next) => {
 }
 
 exports.getUserFollowers = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     const { id } = req.params;
 
-    if (!author || !id) {
+    if (!user || !id) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
@@ -110,14 +112,14 @@ exports.getUserFollowers = (req, res, next) => {
 }
 
 exports.getUserFollowings = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     const { id } = req.params;
 
-    if (!author || !id) {
+    if (!user || !id) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
@@ -145,14 +147,14 @@ exports.getUserFollowings = (req, res, next) => {
 }
 
 exports.getUserBlockeds = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     const { id } = req.params;
 
-    if (!author || !id) {
+    if (!user || !id) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
@@ -181,20 +183,20 @@ exports.getUserBlockeds = (req, res, next) => {
 
 // ceux avec qui vous avez les memes amis
 exports.getUsersWithSameFriends = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
     
-    if (!author) {
+    if (!user) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
     }
 
     User
-        .find({ friends: { $in: author.friends } })
+        .find({ friends: { $in: user.friends } })
         .then(users => {
             if (!users || users.length === 0) {
                 return res.status(404).json({ msg: 'users not found' })
@@ -215,20 +217,20 @@ exports.getUsersWithSameFriends = (req, res, next) => {
 
 // ceux avec qui vous avez les memes followers
 exports.getUsersWithSameFollowers = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
 
-    if (!author) {
+    if (!user) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
     }
 
     User
-        .find({ followers: { $in: author.followers } })
+        .find({ followers: { $in: user.followers } })
         .then(users => {
             if (!users || users.length === 0) {
                 return res.status(404).json({ msg: 'users not found' })
@@ -250,20 +252,20 @@ exports.getUsersWithSameFollowers = (req, res, next) => {
 
 // ceux avec qui vous avez les memes followings
 exports.getUsersWithSameFollowings = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
 
-    if (!author) {
+    if (!user) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
     }
 
     User
-        .find({ followings: { $in: author.followings } })
+        .find({ followings: { $in: user.followings } })
         .then(users => {
             if (!users || users.length === 0) {
                 return res.status(404).json({ msg: 'users not found' })
@@ -285,20 +287,20 @@ exports.getUsersWithSameFollowings = (req, res, next) => {
 
 // vos amis qui sont en ligne
 exports.getOnlineFriends = (req, res, next) => {
-    const { author } = req.auth;
+    const { user } = req.auth;
 
-    if (!author) {
+    if (!user) {
         return res.status(400).json({ msg: 'User not found' })
     }
 
-    const actioner = action(author, 'user')
+    const actioner = action(user, 'user')
 
     if (!actioner.group.isRead) {
         return res.status(403).json({ msg: 'You do not have permission to read user' })
     }
 
     User
-        .find({ friends: { $in: author.friends }, online: true })
+        .find({ friends: { $in: user.friends }, online: true })
         .then(users => {
             if (!users || users.length === 0) {
                 return res.status(404).json({ msg: 'users not found' })

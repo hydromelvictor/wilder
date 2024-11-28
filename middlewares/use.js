@@ -35,7 +35,7 @@ module.exports = async (req, res, next) => {
                     model: 'Auth'
                 }
             })
-        console.log(authenticatedUser)
+
         if (!authenticatedUser) {
             throw new Error('User not found, please register');
         }
@@ -66,7 +66,7 @@ module.exports = async (req, res, next) => {
 
         // Ajoute l'utilisateur authentifié dans req.auth
         req.auth.user = authenticatedUser;
-
+        
         // Passe au middleware suivant
         next();
     } catch (err) {

@@ -27,11 +27,15 @@ exports.signup = (req, res, next) => {
 
     const { author } = req.auth;
 
-    if (author && !author.staff) return res.status(403).json({ msg: 'Unauthorized access' });
+    if (author && !author.staff) {
+        return res.status(403).json({ msg: 'Unauthorized access' });
+    }
 
-    const actioner = author ? action(author, 'user'): null;
+    const actioner = author ? action(author, 'user') : null;
 
-    if (author && actioner && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
+    if (author && actioner && !actioner.group.isWrite) {
+        return res.status(403).json({ msg: 'Unauthorized access' });
+    }
 
     const { username, phone, password, group } = req.body;
     
@@ -52,7 +56,9 @@ exports.signup = (req, res, next) => {
             })
 
             // verifier si le numero de telephone est valide
-            if (!isValidPhoneNumber(phone)) return res.status(400).json({ msg: 'invalid phone number' })
+            if (!isValidPhoneNumber(phone)) {
+                return res.status(400).json({ msg: 'invalid phone number' })
+            }
 
             normalPhone = getInternationalPhoneNumber(phone)
             country = getCountryName(phone)
@@ -313,7 +319,9 @@ exports.reset = (req, res, next) => {
 
     const actioner = author ? action(author, 'user') : null;
 
-    if (author && actioner && !actioner.group.isWrite) return res.status(403).json({ msg: 'Unauthorized access' });
+    if (author && actioner && !actioner.group.isWrite) {
+        return res.status(403).json({ msg: 'Unauthorized access' });
+    }
 
     const { username, password } = req.body;
 

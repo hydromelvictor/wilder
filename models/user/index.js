@@ -35,7 +35,7 @@ const UserSchema = mongoose.Schema({
         type: mongoose.Schema.Types.Mixed
     },
     sex: {
-        type: mongoose.Schema.Types.Mixed
+        type: String
     },
     country: {
         type: mongoose.Schema.Types.Mixed
