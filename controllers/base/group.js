@@ -254,6 +254,11 @@ exports.getGroup = (req, res, next) => {
      */
 
     const { user } = req.auth;
+    //?page=1&limit=10
+    const { page = 1, limit = 10 } = req.query
+    const { id } = req.params;
+
+    const offset = (page - 1) * limit;
 
     if (!user) {
         return res.status(401).json({
@@ -268,19 +273,36 @@ exports.getGroup = (req, res, next) => {
             msg: 'Unauthorized access',
         });
     }
-
-    const { id } = req.params;
+    
     Group
         .find( id ? { _id: id } : {})
         .populate('auths')
+        .skip(parseInt(offset))
+        .limit(parseInt(limit))
         .then(groups => {
             if (!groups) {
                 return res.status(404).json({
                     msg: 'not found group',
                 });
             }
+
+            const totalItems = this.countGroup(req, res, next).store
+            const hasPrevPage = page > 1
+            const hasNextPage = (offset + limit) < totalItems
+
             res.status(200).json({
-                values: id ? groups[0] : groups,
+                store: id ? groups[0] : groups,
+                pagination: id ? {} : {
+                    totalItems: totalItems,
+                    limit: limit,
+                    page: page,
+                    totalPages: Math.ceil(totalItems / limit),
+                    pagingCounter: offset + 1,
+                    hasPrevPage: hasPrevPage,
+                    hasNextPage: hasNextPage,
+                    prevPage: hasPrevPage ? page - 1 : null,
+                    nextPage: hasNextPage ? page + 1 : null
+                },
                 msg: 'successfully',
             });
         })

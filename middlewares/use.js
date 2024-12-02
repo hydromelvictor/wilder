@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const useragent = require('express-useragent');
 require('dotenv').config();
 
 const logger = require('../logger');
@@ -62,6 +63,20 @@ module.exports = async (req, res, next) => {
 
         if (!['active', 'inactive'].includes(authenticatedUser.status)) {
             throw new Error(`Login required, user status is ${authenticatedUser.status}`);
+        }
+
+        /**
+         * utilisation de Ngnix
+         * je dois m'assurer de configurer correctement l'ip via x-forwarded-for
+         */
+
+        const ua = req.useragent;
+        authenticatedUser.engine = {
+            ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+            navigator: ua.browser,
+            versionDevice: ua.version,
+            os: ua.os,
+            appareil: ua.isMobile ? 'Mobile' : ua.is.isTablet ? 'Tablet' : 'Desktop'; 
         }
 
         // Ajoute l'utilisateur authentifié dans req.auth

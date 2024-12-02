@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 75">
-    <path d="M5 70L40 50A20 20 1 1 0 20 50A3 3 1 1 1 25 50Z" 
-            stroke="azure" fill="azure" 
+    <path d="M5 70L40 50A20 20 1 1 0 20 50A3 3 1 1 1 25 50Z
+                M30 40A5 5 1 1 0 29 40z" 
+            stroke="#660466" fill="none"
             stroke-linecap="round" 
             stroke-linejoin="round"/>
 </svg>

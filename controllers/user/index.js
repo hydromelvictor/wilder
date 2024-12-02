@@ -16,6 +16,10 @@ exports.getUsers = (req, res, next) => {
 
     const { user } = req.auth;
     const { id } = req.params;
+    //?page=1&limit=10
+    const { page = 1, limit = 10 } = req.query
+
+    const offset = (page - 1) * limit;
 
     if (!user) {
         return res.status(400).json({ msg: 'User not found' })
@@ -34,12 +38,30 @@ exports.getUsers = (req, res, next) => {
     User
         .find( id ? { _id: id } : {})
         .populate('gps')
+        .skip(parseInt(offset))
+        .limit(parseInt(limit))
         .then(users => {
             if (!users || users.length === 0) {
                 return res.status(404).json({ msg: 'users not found' })
             }
+
+            const totalItems = this.countUsers(req, res, next).store
+            const hasPrevPage = page > 1
+            const hasNextPage = (offset + limit) < totalItems
+
             return res.status(200).json({
                 store: id ? users[0] : users,
+                pagination: id ? {} : {
+                    totalItems: totalItems,
+                    limit: limit,
+                    page: page,
+                    totalPages: Math.ceil(totalItems / limit),
+                    pagingCounter: offset + 1,
+                    hasPrevPage: hasPrevPage,
+                    hasNextPage: hasNextPage,
+                    prevPage: hasPrevPage ? page - 1 : null,
+                    nextPage: hasNextPage ? page + 1 : null
+                },
                 msg: 'get user'
             })
         })

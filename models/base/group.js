@@ -14,7 +14,7 @@ const GroupSchema = mongoose.Schema({
         ref: 'Auth',
         required: true
     }]
-})
+}, { timestamps: true })
 
 
 module.exports = mongoose.model('Group', GroupSchema)
