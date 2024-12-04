@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Entity = require('./entity')
 
 
 const GpsSchema = mongoose.Schema({
@@ -22,4 +21,4 @@ const GpsSchema = mongoose.Schema({
 })
 
 
-mongoose.model('Gps', GpsSchema)
+module.exports = mongoose.model('Gps', GpsSchema)

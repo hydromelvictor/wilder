@@ -1,25 +1,29 @@
 const mongoose = require('mongoose');
 
 const LogSchema = mongoose.Schema({
+    // celui qui fait l'action a suivre
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         reef: 'User',
         required: true
     },
+    // create get delete update
     action: {
         type: String,
         required: true
     },
+    // address ip du owner
     ipAdrress: {
         type: String,
         required: true
     },
+    // information sur l'appareil de connexion
     device: {
         type: mongoose.Schema.Types.Mixed,
         required: true
     },
     /**
-     * name
+     * name : User(ex)
      * id
      */
     ressource: {

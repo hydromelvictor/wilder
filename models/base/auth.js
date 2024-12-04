@@ -10,7 +10,7 @@ const AuthSchema = mongoose.Schema({
 
     access: {
         type: String,
-        default: ''
+        default: 'rwx'
     },
     // entité
     entity: {

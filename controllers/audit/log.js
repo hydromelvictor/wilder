@@ -34,13 +34,10 @@ exports.createLog = (req, res, next) => {
 
     log
         .save()
-        .then(log => res.status(201).json({
-            store: log._id,
-            msg: 'log created'
-        }))
+        .then(log => res.status(201).json())
         .catch(err => {
             logger.error(err)
-            res.status(500).json({
+            return res.status(500).json({
                 msg: 'error while creating log audit',
                 error: err.message
             })

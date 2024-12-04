@@ -14,3 +14,5 @@ const PolicySchema = mongoose.Schema({
         default: false
     }
 }, { timestamps: true })
+
+module.exports = mongoose.model('Policy', PolicySchema)

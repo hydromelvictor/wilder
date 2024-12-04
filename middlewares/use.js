@@ -71,12 +71,26 @@ module.exports = async (req, res, next) => {
          */
 
         const ua = req.useragent;
+
+        const appareil = () => {
+            if (!ua) {
+                return 'Unknown';
+            }
+            if (ua.isMobile) {
+                return 'Mobile';
+            } else if (ua.isTablet) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        };
+
         authenticatedUser.engine = {
             ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-            navigator: ua.browser,
-            versionDevice: ua.version,
-            os: ua.os,
-            appareil: ua.isMobile ? 'Mobile' : ua.is.isTablet ? 'Tablet' : 'Desktop'; 
+            navigator: ua ? ua.browser : 'Unknown',
+            versionDevice: ua ? ua.version : 'Unknown',
+            os: ua ? ua.os : 'Unknown',
+            appareil: appareil
         }
 
         // Ajoute l'utilisateur authentifié dans req.auth

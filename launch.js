@@ -1,16 +1,22 @@
 const EventEmitter = require('events');
-const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const Group = require('./models/base/group');
 const Auth = require('./models/base/auth');
 const User = require('./models/user/index');
 
+const collections = require('./utils/collections')
+
 const logger = require('./logger');
 
 class ServerEvents extends EventEmitter {}
 
 const serverEvents = new ServerEvents();
+
+const path = require('path');
+
+const models = collections(path.join(__dirname, 'models'));
 
 
 /**
@@ -29,14 +35,10 @@ async function createDefaultUserGroup() {
                 }
 
                 // definis les authorisations de l'utilisateur
-                const auths = [
-                    {
-                        access: 'rwx',
-                        entity: 'user'
-                    },
-                    { entity: 'auth' },
-                    { entity: 'group' }
-                ]
+                const auths = models.map(model => ({
+                    entity: model,
+                    access: 'rwx'
+                }));
 
                  Auth
                     .insertMany(auths)
@@ -85,57 +87,67 @@ async function createSuperUser() {
             !process.env.SUPER_USER_EMAIL 
             || !process.env.SUPER_USER_PASSWORD 
             || !process.env.SUPER_USER_PHONE
+            || !process.env.SUPER_USER_NAME
         ) {
             throw new Error('Super user environment variables are not properly defined');
         }
 
-        // Vérifiez si le groupe 'superUser' existe déjà
-        Group
-            .findOne({ name: 'superUser' })
-            .then(group => {
-                if (group) {
-                    logger.info('SuperUser group already exists');
+        // verifier si un super User exist
+        User
+            .findOne({ username: process.env.SUPER_USER_NAME })
+            .then(user => {
+                if (user) {
                     return;
                 }
 
-                // les collections de la base de données
-                const collections = [
-                    'user',
-                    'auth',
-                    'group',
-                ]
-                
-                const auths = collections.map(collection => ({
-                    entity: collection,
-                    access: 'rwx'
-                }));
+                // verifier l'existence du group superUser
+                Group
+                    .findOne({ name: 'superUser' })
+                    .then(group => {
+                        if (!group) {
+                            const auths = models.map(model => ({
+                                entity: model,
+                                access: 'rwx'
+                            }));
 
-                 Auth
-                    .insertMany(auths)
-                    .then(insertedAuths => {
-                        // Créez le groupe 'superUser'
-                        const newGroup = new Group({
-                            name: 'superUser',
-                            auths: insertedAuths.map(auth => auth._id),
-                        });
+                            Auth
+                                .insertMany(auths)
+                                .then(insertedAuths => {
+                                    const newGroup = new Group({
+                                        name: 'superUser',
+                                        auths: insertedAuths.map(auth => auth._id),
+                                    });
 
-                        newGroup
-                            .save()
-                            .then(savedGroup => {
-                                // Créez le super utilisateur
+                                    newGroup
+                                        .save()
+                                        .then()
+                                        .catch(err => {
+                                            logger.error('Error creating SuperUser:', err);
+                                            console.error('Error creating SuperUser:', err);
+                                        });
+                                })
+                                .catch(err => {
+                                    logger.error('Error creating SuperUser:', err);
+                                    console.error('Error creating SuperUser:', err);
+                                });
+                        }
+
+                        bcrypt
+                            .hash(process.env.SUPER_USER_PASSWORD, 10)
+                            .then(hash => {
                                 const user = new User({
-                                    username: 'admin::unknown',
+                                    username: process.env.SUPER_USER_NAME,
                                     email: {
                                         value: process.env.SUPER_USER_EMAIL,
                                         isPublic: true
                                     },
-                                    password: process.env.SUPER_USER_PASSWORD,
+                                    password: hash,
                                     phone: {
                                         value: process.env.SUPER_USER_PHONE,
                                         isPublic: true
                                     },
                                     staff: true,
-                                    group: savedGroup._id,
+                                    group: group._id,
                                 });
 
                                 user
@@ -162,6 +174,7 @@ async function createSuperUser() {
                 logger.error('Error creating SuperUser:', err);
                 console.error('Error creating SuperUser:', err);
             });
+            
     } catch (err) {
         logger.error('Error creating SuperUser:', err);
         console.error('Error creating SuperUser:', err);
@@ -173,4 +186,5 @@ module.exports = {
     serverEvents,
     createSuperUser,
     createDefaultUserGroup,
+    models
 };

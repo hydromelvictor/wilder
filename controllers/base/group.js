@@ -1,22 +1,5 @@
-/**
- * groups
- * 
- * definition:
- * 
- * les groups standard: user - superuser
- * 
- * il est du devoir et de la seul responsabilité a un
- * superuser de creer de nouveau group comme par exemple
- * admin - controller - direction ...etc
- * 
- * c'est different group on pour objectif de defini
- * plusieur acteur intervenant a des niveau d'acreditation
- * different dans l'application tout en garantissant la
- * securité des données
- */
-
-const Group = require('../../models/base/group')
-const Auth = require('../../models/base/auth')
+const Group = require('../../models/base/group');
+const Auth = require('../../models/base/auth');
 const logger = require('../../logger');
 const action = require('../../utils/action');
 
@@ -27,16 +10,14 @@ const {
     queryCheckUpdateAuth
 } = require('../../utils/other');
 
+const models = require('../../launch').models;
+const createLog = require('../../utils/secure').createLog
 
 
 // creer un nouveau group
 exports.createGroup = (req, res, next) => {
     /**
      * name : String
-     * auths : Array
-     *  items:
-     *      access: string
-     *      entity: string
      */
 
     const { user } = req.auth;
@@ -47,7 +28,7 @@ exports.createGroup = (req, res, next) => {
         });
     }
 
-    const actioner = action(user, 'group');
+    const actioner = action(user, Group.modelName);
 
     if (!user.staff || !actioner.group.isWrite) {
         return res.status(401).json({
@@ -55,17 +36,7 @@ exports.createGroup = (req, res, next) => {
         });
     }
 
-    const { name, auths } = req.body;
-
-    // Validation des données
-    if (
-        !name || !Array.isArray(auths) ||
-        !verifyAuth(auths)
-    ) {
-        return res.status(400).json({
-            msg: 'name and authorizations are required or invalid !!!',
-        });
-    }
+    const { name } = req.body;
 
     // verifions qu'aucun group du meme nom exists 
     Group
@@ -76,6 +47,11 @@ exports.createGroup = (req, res, next) => {
                     msg: 'this group already exists !!!'
                 })
             }
+
+            const auths = models.map(model => ({
+                entity: model,
+                access: 'rwx'
+            }));
         
             // creation des authorizations relative au group
             Auth
@@ -89,16 +65,17 @@ exports.createGroup = (req, res, next) => {
 
                     group
                         .save()
-                        .then(() => 
-                            res
-                                .status(201)
-                                .json({ 
-                                    values: group._id,
-                                    msg: 'successfully' 
-                                }
-                        ))
+                        .then((group) => {
+                            createLog('create group', Auth.modelName, group._id, user)
+
+                            return res.status(201).json({ 
+                                values: group._id,
+                                msg: 'successfully' 
+                            })
+                        })
                         .catch(err => {
-                            logger.error(err)
+                            logger.error(err);
+
                             return res.status(500).json({
                                 msg: 'error creating group',
                                 error: err.message
@@ -139,7 +116,7 @@ exports.updateGroup = (req, res, next) => {
         });
     }
 
-    const actioner = action(user, 'group');
+    const actioner = action(user, Group.modelName);
 
     if (!user.staff || !actioner.group.isWrite) {
         return res.status(401).json({
@@ -266,7 +243,7 @@ exports.getGroup = (req, res, next) => {
         });
     }
 
-    const actioner = action(user, 'group');
+    const actioner = action(user, Group.modelName);
 
     if (!user.staff || !actioner.group.isRead) {
         return res.status(401).json({
@@ -329,7 +306,7 @@ exports.deleteGroup = (req, res, next) => {
         });
     }
 
-    const actioner = action(user, 'group');
+    const actioner = action(user, Group.modelName);
 
     if (!user.staff || !actioner.group.isExec
     ) {
@@ -412,7 +389,7 @@ exports.countGroup = (req, res, next) => {
         });
     }
 
-    const actioner = action(user, 'group');
+    const actioner = action(user, Group.modelName);
 
     if (!user.staff|| !actioner.group.isRead) {
         return res.status(401).json({
