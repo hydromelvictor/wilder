@@ -1,10 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Wilder API Documentation
+  title: API de site e-commerce
   version: 0.0.1
-  description: Wild est principalement une plateforme de mis en relation
-    prestataire - clients mettant en valeur les competences et/ou ressources personnellement disponible 
-    et presque de moindre interet personnel mais hautement valorisé par autrui.
+  description: gerer la vente de produits
   contact:
     name: Wild Team
     email:

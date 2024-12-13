@@ -21,7 +21,7 @@ const logRts = require('./routes/audit/log')
 
 
 // connexion a la base de donnees
-mongoose.connect('mongodb://' + process.env.MONGO_HOST + ':' + process.env.MONGO_PORT + '/' + process.env.MONGO_DB)
+mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.error('Connexion à MongoDB échouée !'));
 
