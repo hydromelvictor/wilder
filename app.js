@@ -12,12 +12,14 @@ require('dotenv').config();
 
 
 // the routes
-const groupRts = require('./routes/base/group')
+const groupRts = require('./routes/base/group');
 
-const authRts = require('./routes/user/auth')
-const userRts = require('./routes/user/index')
+const authRts = require('./routes/user/auth');
+const userRts = require('./routes/user/index');
 
-const logRts = require('./routes/audit/log')
+const prdRts = require('./routes/product');
+
+const logRts = require('./routes/audit/log');
 
 
 // connexion a la base de donnees
@@ -56,5 +58,7 @@ app.use('/security/logs', logRts)
 
 app.use('/auth', authRts)
 app.use('/users', userRts)
+
+app.use('/categories', prdRts)
 
 module.exports = app;
